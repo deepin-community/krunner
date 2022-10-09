@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: none
+# SPDX-License-Identifier: CC0-1.0
+
+Dependencies:
+- 'on': ['Linux', 'FreeBSD', 'Windows', 'macOS']
+  'require':
+    'frameworks/extra-cmake-modules': '@same'
+    'frameworks/kio' : '@same'
+    'frameworks/kconfig' : '@same'
+    'frameworks/kservice' : '@same'
+    'frameworks/threadweaver' : '@same'
+    'frameworks/ki18n' : '@same'
+    'frameworks/plasma-framework' : '@same'
+
+Options:
+  test-before-installing: True
