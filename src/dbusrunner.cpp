@@ -31,11 +31,11 @@ DBusRunner::DBusRunner(QObject *parent, const KPluginMetaData &pluginMetaData, c
     qDBusRegisterMetaType<RemoteAction>();
     qDBusRegisterMetaType<RemoteActions>();
     qDBusRegisterMetaType<RemoteImage>();
-    qRegisterMetaType<QMap<QString, RemoteActions>>();
+    qRegisterMetaType<QMap<QString, RemoteActions>>("QMap<QString, RemoteActions>");
 
     QString requestedServiceName = pluginMetaData.value(QStringLiteral("X-Plasma-DBusRunner-Service"));
     m_path = pluginMetaData.value(QStringLiteral("X-Plasma-DBusRunner-Path"));
-    m_hasUniqueResults = pluginMetaData.rawData().value(QStringLiteral("X-Plasma-Runner-Unique-Results")).toBool();
+    m_hasUniqueResults = pluginMetaData.value(QStringLiteral("X-Plasma-Runner-Unique-Results"), false);
     m_callLifecycleMethods = pluginMetaData.value(QStringLiteral("X-Plasma-API")) == QLatin1String("DBus2");
 
     if (requestedServiceName.isEmpty() || m_path.isEmpty()) {
@@ -80,12 +80,15 @@ DBusRunner::DBusRunner(QObject *parent, const KPluginMetaData &pluginMetaData, c
         m_matchingServices << requestedServiceName;
     }
 
-    m_requestActionsOnce = pluginMetaData.rawData().value(QStringLiteral("X-Plasma-Request-Actions-Once")).toVariant().toBool();
+    m_requestActionsOnce = pluginMetaData.value(QStringLiteral("X-Plasma-Request-Actions-Once"), false);
     connect(this, &AbstractRunner::teardown, this, &DBusRunner::teardown);
 
     // Load the runner syntaxes
-    const QStringList syntaxes = pluginMetaData.rawData().value(QStringLiteral("X-Plasma-Runner-Syntaxes")).toVariant().toStringList();
-    const QStringList syntaxDescriptions = pluginMetaData.rawData().value(QStringLiteral("X-Plasma-Runner-Syntax-Descriptions")).toVariant().toStringList();
+    const QJsonValue syntaxesJson = pluginMetaData.rawData().value(QStringLiteral("X-Plasma-Runner-Syntaxes"));
+    const QStringList syntaxes = syntaxesJson.isArray() ? syntaxesJson.toVariant().toStringList() : syntaxesJson.toString().split(QLatin1Char(','), Qt::SkipEmptyParts);
+    const QJsonValue syntaxDescriptionsJson = pluginMetaData.rawData().value(QStringLiteral("X-Plasma-Runner-Syntax-Descriptions"));
+    const QStringList syntaxDescriptions =
+        syntaxDescriptionsJson.isArray() ? syntaxDescriptionsJson.toVariant().toStringList() : syntaxDescriptionsJson.toString().split(QLatin1Char(','), Qt::SkipEmptyParts);
     const int descriptionCount = syntaxDescriptions.count();
     for (int i = 0; i < syntaxes.count(); ++i) {
         const QString &query = syntaxes.at(i);
@@ -214,17 +217,16 @@ void DBusRunner::match(Plasma::RunnerContext &context)
         }
     }
     // we scope watchers to make sure the lambda that captures context by reference definitely gets disconnected when this function ends
-    QList<QSharedPointer<QDBusPendingCallWatcher>> watchers;
+    std::vector<std::unique_ptr<QDBusPendingCallWatcher>> watchers;
 
     for (const QString &service : std::as_const(services)) {
         auto matchMethod = QDBusMessage::createMethodCall(service, m_path, QStringLiteral(IFACE_NAME), QStringLiteral("Match"));
         matchMethod.setArguments(QList<QVariant>({context.query()}));
         QDBusPendingReply<RemoteMatches> reply = QDBusConnection::sessionBus().asyncCall(matchMethod);
 
-        auto watcher = new QDBusPendingCallWatcher(reply);
-        watchers << QSharedPointer<QDBusPendingCallWatcher>(watcher);
+        watchers.push_back(std::make_unique<QDBusPendingCallWatcher>(reply));
         connect(
-            watcher,
+            watchers.back().get(),
             &QDBusPendingCallWatcher::finished,
             this,
             [this, service, &context, reply]() {
@@ -245,12 +247,14 @@ void DBusRunner::match(Plasma::RunnerContext &context)
                     m.setUrls(QUrl::fromStringList(match.properties.value(QStringLiteral("urls")).toStringList()));
                     m.setMatchCategory(match.properties.value(QStringLiteral("category")).toString());
                     m.setSubtext(match.properties.value(QStringLiteral("subtext")).toString());
-                    if (match.properties.contains(QStringLiteral("actions"))) {
-                        m.setData(QVariantList({service, match.properties.value(QStringLiteral("actions"))}));
-                    } else {
+                    const auto actionsIt = match.properties.find(QStringLiteral("actions"));
+                    if (actionsIt == match.properties.cend()) {
                         m.setData(QVariantList({service}));
+                    } else {
+                        m.setData(QVariantList({service, actionsIt.value().toStringList()}));
                     }
                     m.setId(match.id);
+                    m.setMultiLine(match.properties.value(QStringLiteral("multiline")).toBool());
 
                     const QVariant iconData = match.properties.value(QStringLiteral("icon-data"));
                     if (iconData.isValid()) {
@@ -277,7 +281,7 @@ void DBusRunner::match(Plasma::RunnerContext &context)
             Qt::DirectConnection); // process reply in the watcher's thread (aka the one running ::match  not the one owning the runner)
     }
     // we're done matching when every service replies
-    for (auto w : std::as_const(watchers)) {
+    for (auto &w : watchers) {
         w->waitForFinished();
     }
 }

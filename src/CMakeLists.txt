@@ -32,7 +32,7 @@ target_sources(KF5Runner PRIVATE
     runnermanager.h
     runnersyntax.cpp
     runnersyntax.h
-
+    krunner.qrc
 )
 ecm_qt_declare_logging_category(KF5Runner
     HEADER krunner_debug.h
@@ -49,7 +49,7 @@ ecm_generate_export_header(KF5Runner
     GROUP_BASE_NAME KF
     VERSION ${KF_VERSION}
     DEPRECATED_BASE_VERSION 0
-    DEPRECATION_VERSIONS 5.28 5.71 5.72 5.73 5.76 5.77 5.79 5.81 5.82 5.85 5.86 5.88
+    DEPRECATION_VERSIONS 5.28 5.71 5.72 5.73 5.76 5.77 5.79 5.81 5.82 5.85 5.86 5.88 5.99
     EXCLUDE_DEPRECATED_BEFORE_AND_AT ${EXCLUDE_DEPRECATED_BEFORE_AND_AT}
 )
 
@@ -61,23 +61,28 @@ target_include_directories(KF5Runner PUBLIC "$<BUILD_INTERFACE:${KRunner_BUILD_I
 target_link_libraries(KF5Runner
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
+        KF5::I18n
+        KF5::CoreAddons # KPluginFactory
     PRIVATE
         Qt${QT_MAJOR_VERSION}::DBus
-        Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Widgets
-        KF5::ConfigCore
-        KF5::Service
-        KF5::I18n
         KF5::ThreadWeaver
-        KF5::CoreAddons #KShell
-        KF5::KIOCore #KProtocolInfo
 )
 if(NOT EXCLUDE_DEPRECATED_BEFORE_AND_AT STREQUAL "CURRENT" AND
-   EXCLUDE_DEPRECATED_BEFORE_AND_AT VERSION_LESS 5.65.0)
+   EXCLUDE_DEPRECATED_BEFORE_AND_AT VERSION_LESS 5.91.0)
     target_link_libraries(KF5Runner
         PUBLIC
+            KF5::Service # KPluginInfo
             KF5::Plasma # Must be public because abstractrunner.h needs plasma/version.h
+        PRIVATE
+            KF5::KIOCore #KProtocolInfo
     )
+endif()
+if(NOT EXCLUDE_DEPRECATED_BEFORE_AND_AT STREQUAL "CURRENT" AND
+   EXCLUDE_DEPRECATED_BEFORE_AND_AT VERSION_LESS 5.94.0)
+    target_link_libraries(KF5Runner PUBLIC Qt${QT_MAJOR_VERSION}::Gui KF5::ConfigCore)
+else()
+    target_link_libraries(KF5Runner PRIVATE Qt${QT_MAJOR_VERSION}::Gui KF5::ConfigCore)
 endif()
 if(HAVE_KACTIVITIES)
     target_link_libraries(KF5Runner PRIVATE KF5::Activities)
@@ -106,7 +111,7 @@ ecm_generate_headers(KRunner_CamelCase_HEADERS
 
 install(TARGETS KF5Runner
         EXPORT KF5RunnerTargets
-        ${KF5_INSTALL_TARGETS_DEFAULT_ARGS})
+        ${KF_INSTALL_TARGETS_DEFAULT_ARGS})
 
 install(FILES ${KRunner_CamelCase_HEADERS}
         DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KRunner/KRunner
@@ -155,6 +160,7 @@ if(BUILD_QCH)
             KRUNNER_DEPRECATED_EXPORT
             "KRUNNER_DEPRECATED_VERSION(x, y, t)"
             "KRUNNER_DEPRECATED_VERSION_BELATED(x, y, xt, yt, t)"
+            "KRUNNER_ENUMERATOR_DEPRECATED_VERSION(x, y, t)"
         PREDEFINED_MACROS
             "KSERVICE_BUILD_DEPRECATED_SINCE(x, y)=1"
             "PLASMA_ENABLE_DEPRECATED_SINCE(x, y)=1"

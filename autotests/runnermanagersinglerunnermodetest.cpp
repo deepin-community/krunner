@@ -3,9 +3,9 @@
     SPDX-License-Identifier: LGPL-2.1-or-later
 */
 
-#include "fakerunner.h"
 #include "runnermanager.h"
 
+#include <KConfigGroup>
 #include <KSharedConfig>
 #include <QAction>
 #include <QCoreApplication>
@@ -15,6 +15,7 @@
 #include <QTest>
 
 #include "abstractrunnertest.h"
+#include "kpluginmetadata_utils_p.h"
 
 using namespace Plasma;
 
@@ -29,7 +30,7 @@ private Q_SLOTS:
         qputenv("XDG_DATA_DIRS", QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation).toLocal8Bit());
         QCoreApplication::setLibraryPaths(QStringList());
         initProperties();
-        auto md = KPluginMetaData::fromDesktopFile(QFINDTESTDATA("dbusrunnertestmulti.desktop"), {QStringLiteral("plasma-runner.desktop")});
+        auto md = parseMetaDataFromDesktopFile(QFINDTESTDATA("dbusrunnertestmulti.desktop"));
         QVERIFY(md.isValid());
         manager->loadRunner(md);
     }

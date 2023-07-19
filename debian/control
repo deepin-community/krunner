@@ -7,21 +7,22 @@ Uploaders: Aurélien COUDERC <coucouf@debian.org>,
 Build-Depends: cmake (>= 3.16~),
                debhelper-compat (= 13),
                doxygen,
-               extra-cmake-modules (>= 5.90.0~),
-               libkf5config-dev (>= 5.90.0~),
-               libkf5coreaddons-dev (>= 5.90.0~),
-               libkf5i18n-dev (>= 5.90.0~),
-               libkf5kio-dev (>= 5.90.0~),
-               libkf5plasma-dev (>= 5.90.0~),
-               libkf5service-dev (>= 5.90.0~),
-               libkf5threadweaver-dev (>= 5.90.0~),
+               extra-cmake-modules (>= 5.103.0~),
+               libkf5activities-dev (>= 5.103.0~),
+               libkf5config-dev (>= 5.103.0~),
+               libkf5coreaddons-dev (>= 5.103.0~),
+               libkf5i18n-dev (>= 5.103.0~),
+               libkf5kio-dev (>= 5.103.0~),
+               libkf5plasma-dev (>= 5.103.0~),
+               libkf5service-dev (>= 5.103.0~),
+               libkf5threadweaver-dev (>= 5.103.0~),
                libqt5sql5-sqlite,
                pkg-kde-tools (>= 0.15.15ubuntu1~),
                qtbase5-dev (>= 5.15.2~),
                qtdeclarative5-dev (>= 5.15.2~),
                qttools5-dev,
                qttools5-dev-tools,
-Standards-Version: 4.6.0
+Standards-Version: 4.6.2
 Homepage: https://invent.kde.org/frameworks/krunner
 Vcs-Browser: https://salsa.debian.org/qt-kde-team/kde/krunner
 Vcs-Git: https://salsa.debian.org/qt-kde-team/kde/krunner.git
@@ -30,12 +31,12 @@ Rules-Requires-Root: no
 Package: libkf5runner-dev
 Section: libdevel
 Architecture: any
-Depends: extra-cmake-modules (>= 5.90.0~),
-         libkf5plasma-dev (>= 5.90.0~),
+Depends: extra-cmake-modules (>= 5.103.0~),
+         libkf5plasma-dev (>= 5.103.0~),
          libkf5runner5 (= ${binary:Version}),
          qtbase5-dev (>= 5.15.2~),
          ${misc:Depends},
-Recommends: libkf5runner-doc (= ${source:Version})
+Recommends: libkf5runner-doc (= ${source:Version}),
 Description: development files for krunner
  An assortment of text-related widgets.
  .
@@ -44,7 +45,7 @@ Description: development files for krunner
 Package: libkf5runner-doc
 Architecture: all
 Multi-Arch: foreign
-Depends: ${misc:Depends}
+Depends: ${misc:Depends},
 Description: Used to write plugins loaded at runtime called "Runners" (documentation)
  Launcher built into the Plasma desktop. While its
  basic function is to launch programs from a sort
@@ -58,8 +59,8 @@ Section: doc
 Package: libkf5runner5
 Architecture: any
 Multi-Arch: same
-Depends: ${misc:Depends}, ${shlibs:Depends}
-Recommends: qml-module-org-kde-runnermodel (= ${binary:Version})
+Depends: ${misc:Depends}, ${shlibs:Depends},
+Recommends: qml-module-org-kde-runnermodel (= ${binary:Version}),
 Description: Used to write plugins loaded at runtime called "Runners".
  Launcher built into the Plasma desktop. While its
  basic function is to launch programs from a sort
@@ -69,7 +70,7 @@ Description: Used to write plugins loaded at runtime called "Runners".
 
 Package: qml-module-org-kde-runnermodel
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends},
 Description: Used to write plugins loaded at runtime called "Runners".
  Launcher built into the Plasma desktop. While its
  basic function is to launch programs from a sort

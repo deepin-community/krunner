@@ -12,16 +12,23 @@
 #include <QList>
 #include <QObject>
 
+#include "krunner_export.h"
+
+#if KRUNNER_ENABLE_DEPRECATED_SINCE(5, 91)
 #include <KPluginInfo>
+#endif
 #include <KPluginMetaData>
 
 #include <memory>
 
 #include "abstractrunner.h"
-#include "krunner_export.h"
 
 class QAction;
 class KConfigGroup;
+namespace
+{
+class AbstractRunnerTest;
+}
 
 namespace Plasma
 {
@@ -309,7 +316,7 @@ public:
     void loadRunner(const QString &path);
 #endif
 
-#if KRUNNER_ENABLE_DEPRECATED_SINCE(5, 77)
+#if KRUNNER_ENABLE_DEPRECATED_SINCE(5, 88)
     /**
      * @return the list of allowed plugins
      * @since 4.4
@@ -459,12 +466,20 @@ Q_SIGNALS:
 
 private:
     Q_PRIVATE_SLOT(d, void jobDone(ThreadWeaver::JobPointer))
+    KPluginMetaData convertDBusRunnerToJson(const QString &filename) const;
 
     std::unique_ptr<RunnerManagerPrivate> const d;
 
     friend class RunnerManagerPrivate;
+    friend AbstractRunnerTest;
 };
 
 }
+#if !KRUNNER_ENABLE_DEPRECATED_SINCE(5, 91)
+namespace KRunner
+{
+using RunnerManager = Plasma::RunnerManager;
+}
+#endif
 
 #endif
