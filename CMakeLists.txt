@@ -3,13 +3,13 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-set(KF_VERSION "5.90.0") # handled by release scripts
-set(KF_DEP_VERSION "5.90.0") # handled by release scripts
+set(KF_VERSION "5.103.0") # handled by release scripts
+set(KF_DEP_VERSION "5.103.0") # handled by release scripts
 project(KRunner VERSION ${KF_VERSION})
 
 # ECM setup
 include(FeatureSummary)
-find_package(ECM 5.90.0  NO_MODULE)
+find_package(ECM 5.103.0  NO_MODULE)
 set_package_properties(ECM PROPERTIES TYPE REQUIRED DESCRIPTION "Extra CMake Modules." URL "https://commits.kde.org/extra-cmake-modules")
 feature_summary(WHAT REQUIRED_PACKAGES_NOT_FOUND FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
@@ -27,7 +27,9 @@ include(CMakePackageConfigHelpers)
 include(KDEPackageAppTemplates)
 include(ECMQtDeclareLoggingCategory)
 include(ECMSetupQtPluginMacroNames)
+include(ECMDeprecationSettings)
 include(KDEGitCommitHooks)
+
 
 set(EXCLUDE_DEPRECATED_BEFORE_AND_AT 0 CACHE STRING "Control the range of deprecated API excluded from the build [default=0].")
 
@@ -45,15 +47,24 @@ set(REQUIRED_QT_VERSION 5.15.2)
 
 find_package(Qt${QT_MAJOR_VERSION} ${REQUIRED_QT_VERSION} NO_MODULE REQUIRED Gui Widgets Quick)
 
+ecm_set_disabled_deprecation_versions(
+    QT ${REQUIRED_QT_VERSION}
+    KF 5.95.0
+    PLASMA 5.0.0  # needed because we use Plasma::Package in the API
+    KSERVICE 5.89.0  # needed because we use KPluginInfo, KServiceTypeTrader in the API
+)
+
 find_package(KF5Config ${KF_DEP_VERSION} REQUIRED)
 find_package(KF5CoreAddons ${KF_DEP_VERSION} REQUIRED)
 find_package(KF5I18n ${KF_DEP_VERSION} REQUIRED)
-find_package(KF5KIO ${KF_DEP_VERSION} REQUIRED)
-find_package(KF5Service ${KF_DEP_VERSION} REQUIRED)
 find_package(KF5ThreadWeaver ${KF_DEP_VERSION} REQUIRED)
 if(NOT EXCLUDE_DEPRECATED_BEFORE_AND_AT STREQUAL "CURRENT" AND
-   EXCLUDE_DEPRECATED_BEFORE_AND_AT VERSION_LESS 5.65.0)
+   EXCLUDE_DEPRECATED_BEFORE_AND_AT VERSION_LESS 5.91.0)
+    find_package(KF5KIO ${KF_DEP_VERSION} REQUIRED)
+    find_package(KF5Service ${KF_DEP_VERSION} REQUIRED)
     find_package(KF5Plasma ${KF_DEP_VERSION} REQUIRED)
+else()
+    set(KF5Plasma_FOUND 0)
 endif()
 
 find_package(KF5Activities ${KF_DEP_VERSION})
@@ -76,10 +87,6 @@ ecm_setup_qtplugin_macro_names(
     CONFIG_CODE_VARIABLE
         PACKAGE_SETUP_AUTOMOC_VARIABLES
 )
-
-add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x050e00) # must port away from qmlRegisterInterface before upgrading this to 050f00
-add_definitions(-DKF_DISABLE_DEPRECATED_BEFORE_AND_AT=0x055100)
-add_definitions(-DPLASMA_DISABLE_DEPRECATED_BEFORE_AND_AT=0x050500) # needed because we use Plasma::Package in the API
 
 # Subdirectories
 add_subdirectory(src)
@@ -120,7 +127,7 @@ install(EXPORT KF5RunnerTargets
         NAMESPACE KF5::)
 
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/krunner_version.h"
-        DESTINATION "${KDE_INSTALL_INCLUDEDIR_KF}"
+        DESTINATION "${KDE_INSTALL_INCLUDEDIR_KF}/KRunner"
         COMPONENT Devel)
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)

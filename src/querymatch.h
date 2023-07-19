@@ -41,18 +41,26 @@ public:
         NoMatch = 0, /**< Null match */
         CompletionMatch = 10, /**< Possible completion for the data of the query */
         PossibleMatch = 30, /**< Something that may match the query */
-        InformationalMatch = 50, /**< A purely informational, non-runnable match,
-                                   such as the answer to a question or calculation.
-                                   The data of the match will be converted to a string
-                                   and set in the search field */
-        HelperMatch = 70, /**< A match that represents an action not directly related
-                             to activating the given search term, such as a search
-                             in an external tool or a command learning trigger. Helper
-                             matches tend to be generic to the query and should not
-                             be autoactivated just because the user hits "Enter"
-                             while typing. They must be explicitly selected to
-                             be activated, but unlike InformationalMatch cause
-                             an action to be triggered. */
+#if KRUNNER_ENABLE_DEPRECATED_SINCE(5, 99)
+        /**
+         * A purely informational, non-runnable match, such as the answer to a question or calculation.
+         * The data of the match will be converted to a string and set in the search field.
+         * @deprecated Since 5.99, call RunnerContext::requestQueryStringUpdate in AbstractRunner::run method instead
+         */
+        InformationalMatch KRUNNER_ENUMERATOR_DEPRECATED_VERSION(5, 99, "Call RunnerContext::requestQueryStringUpdate in AbstractRunner::run method instead") =
+            50,
+#endif
+        /**
+         * A match that represents an action not directly related
+         * to activating the given search term, such as a search
+         * in an external tool or a command learning trigger. Helper
+         * matches tend to be generic to the query and should not
+         * be autoactivated just because the user hits "Enter"
+         * while typing. They must be explicitly selected to
+         * be activated, but unlike InformationalMatch cause
+         * an action to be triggered.
+         */
+        HelperMatch = 70,
         ExactMatch = 100, /**< An exact match to the query */
     };
 
@@ -346,5 +354,13 @@ private:
 };
 
 }
+
+#if !KRUNNER_ENABLE_DEPRECATED_SINCE(5, 91)
+namespace KRunner
+{
+using QueryMatch = Plasma::QueryMatch;
+using AbstractRunner = Plasma::AbstractRunner;
+}
+#endif
 
 #endif

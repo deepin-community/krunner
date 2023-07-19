@@ -19,8 +19,11 @@
 #include <QUrl>
 
 #include <KConfigGroup>
-#include <KProtocolInfo>
 #include <KShell>
+
+#if KRUNNER_BUILD_DEPRECATED_SINCE(5, 76)
+#include <KProtocolInfo>
+#endif
 
 #include "abstractrunner.h"
 #include "krunner_debug.h"
@@ -35,14 +38,14 @@ namespace Plasma
 class RunnerContextPrivate : public QSharedData
 {
 public:
-    RunnerContextPrivate(RunnerContext *context)
+    explicit RunnerContextPrivate(RunnerContext *context)
         : QSharedData()
         , type(RunnerContext::UnknownType)
         , q(context)
     {
     }
 
-    RunnerContextPrivate(const RunnerContextPrivate &p)
+    explicit RunnerContextPrivate(const RunnerContextPrivate &p)
         : QSharedData()
         , launchCounts(p.launchCounts)
         , type(RunnerContext::None)
@@ -234,12 +237,10 @@ void RunnerContext::reset()
     // we still have to remove all the matches, since if the
     // ref count was 1 (e.g. only the RunnerContext is using
     // the dptr) then we won't get a copy made
-    if (!d->matches.isEmpty()) {
-        d->matches.clear();
-        Q_EMIT matchesChanged();
-    }
-
+    d->matches.clear();
     d->term.clear();
+    Q_EMIT matchesChanged();
+
     d->mimeType.clear();
     d->uniqueIds.clear();
     d->type = UnknownType;
@@ -249,7 +250,9 @@ void RunnerContext::reset()
 
 void RunnerContext::setQuery(const QString &term)
 {
-    reset();
+    if (!this->query().isEmpty()) {
+        reset();
+    }
 
     if (term.isEmpty()) {
         return;
@@ -334,23 +337,7 @@ bool RunnerContext::addMatches(const QList<QueryMatch> &matches)
 
 bool RunnerContext::addMatch(const QueryMatch &match)
 {
-    if (!isValid()) {
-        // Bail out if the qptr is dirty
-        return false;
-    }
-
-    QueryMatch m(match); // match must be non-const to modify relevance
-
-    LOCK_FOR_WRITE(d)
-
-    if (int count = d->launchCounts.value(m.id())) {
-        m.setRelevance(m.relevance() + 0.05 * count);
-    }
-    d->addMatch(match);
-    UNLOCK(d);
-    Q_EMIT d->q->matchesChanged();
-
-    return true;
+    return addMatches({match});
 }
 
 #if KRUNNER_BUILD_DEPRECATED_SINCE(5, 81)

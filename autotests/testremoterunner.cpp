@@ -25,8 +25,10 @@ TestRemoteRunner::TestRemoteRunner(const QString &serviceName, bool showLifecycl
     qDBusRegisterMetaType<RemoteAction>();
     qDBusRegisterMetaType<RemoteActions>();
     qDBusRegisterMetaType<RemoteImage>();
-    Q_ASSERT(QDBusConnection::sessionBus().registerService(serviceName));
-    Q_ASSERT(QDBusConnection::sessionBus().registerObject(QStringLiteral("/dave"), this));
+    const bool connected = QDBusConnection::sessionBus().registerService(serviceName);
+    Q_ASSERT(connected);
+    const bool registered = QDBusConnection::sessionBus().registerObject(QStringLiteral("/dave"), this);
+    Q_ASSERT(registered);
     m_showLifecycleMethodCalls = showLifecycleMethodCalls;
 }
 
@@ -57,6 +59,19 @@ RemoteMatches TestRemoteRunner::Match(const QString &searchTerm)
         m.properties[QStringLiteral("icon-data")] = QVariant::fromValue(serializeImage(icon));
 
         ms << m;
+    } else if (searchTerm.startsWith(QLatin1String("fooDelay"))) {
+        // This special query string "fooDelayNNNN" allows us to introduce a desired delay
+        // to simulate a slow query
+        const int requestedDelayMs = searchTerm.mid(8).toInt();
+        RemoteMatch m;
+        m.id = QStringLiteral("id3");
+        m.text = QStringLiteral("Match 1");
+        m.iconName = QStringLiteral("icon1");
+        m.type = Plasma::QueryMatch::ExactMatch;
+        m.relevance = 0.8;
+        m.properties[QStringLiteral("actions")] = QStringList(QStringLiteral("action1"));
+        QThread::msleep(requestedDelayMs);
+        ms << m;
     } else if (searchTerm.contains(QLatin1String("foo"))) {
         RemoteMatch m;
         m.id = QStringLiteral("id1");
@@ -65,6 +80,7 @@ RemoteMatches TestRemoteRunner::Match(const QString &searchTerm)
         m.type = Plasma::QueryMatch::ExactMatch;
         m.relevance = 0.8;
         m.properties[QStringLiteral("actions")] = QStringList(QStringLiteral("action1"));
+        m.properties[QStringLiteral("multiline")] = true;
         ms << m;
     }
     return ms;

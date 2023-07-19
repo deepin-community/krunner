@@ -8,6 +8,7 @@
 
 #include <QAction>
 #include <QIcon>
+#include <QPointer>
 #include <QReadWriteLock>
 #include <QSharedData>
 #include <QVariant>
@@ -161,9 +162,9 @@ void QueryMatch::setData(const QVariant &data)
     d->data = data;
 
     if (d->id.isEmpty() || d->idSetByData) {
-        const QString id = data.toString();
-        if (!id.isEmpty()) {
-            setId(data.toString());
+        const QString matchId = data.toString();
+        if (!matchId.isEmpty()) {
+            setId(matchId);
             d->idSetByData = true;
         }
     }

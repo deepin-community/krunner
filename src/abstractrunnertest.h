@@ -41,13 +41,13 @@ public:
         manager.reset(new Plasma::RunnerManager());
 
 #if KRUNNER_DBUS_RUNNER_TESTING
-        auto md = KPluginMetaData::fromDesktopFile(QStringLiteral(KRUNNER_TEST_DESKTOP_FILE), {QStringLiteral("plasma-runner.desktop")});
+        auto md = manager->convertDBusRunnerToJson(QStringLiteral(KRUNNER_TEST_DESKTOP_FILE));
         QVERIFY(md.isValid());
         manager->loadRunner(md);
 #else
-        auto metaData = KPluginMetaData::findPluginById(QStringLiteral(KRUNNER_TEST_RUNNER_PLUGIN_DIR),
-                                                        QFileInfo(QStringLiteral(KRUNNER_TEST_RUNNER_PLUGIN_NAME)).baseName());
-        QVERIFY(metaData.isValid());
+        const QString pluginId = QFileInfo(QStringLiteral(KRUNNER_TEST_RUNNER_PLUGIN_NAME)).completeBaseName();
+        auto metaData = KPluginMetaData::findPluginById(QStringLiteral(KRUNNER_TEST_RUNNER_PLUGIN_DIR), pluginId);
+        QVERIFY2(metaData.isValid(), qPrintable("Could not find plugin " + pluginId + " in folder " + KRUNNER_TEST_RUNNER_PLUGIN_DIR));
 
         // Set internal variables
         manager->loadRunner(metaData);
@@ -81,7 +81,7 @@ public:
     {
         qputenv("LC_ALL", "C.utf-8");
         QProcess *process = new QProcess();
-        auto md = KPluginMetaData::fromDesktopFile(QStringLiteral(KRUNNER_TEST_DESKTOP_FILE), {QStringLiteral("plasma-runner.desktop")});
+        auto md = manager->convertDBusRunnerToJson(QStringLiteral(KRUNNER_TEST_DESKTOP_FILE));
         QString serviceToWatch = waitForService;
         if (serviceToWatch.isEmpty()) {
             serviceToWatch = md.value(QStringLiteral("X-Plasma-DBusRunner-Service"));

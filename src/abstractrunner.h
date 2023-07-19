@@ -7,16 +7,26 @@
 #ifndef PLASMA_ABSTRACTRUNNER_H
 #define PLASMA_ABSTRACTRUNNER_H
 
-#include <QIcon>
+#include "krunner_export.h"
+
 #include <QObject>
 #include <QStringList>
 
+#if KRUNNER_ENABLE_DEPRECATED_SINCE(5, 94)
 #include <KConfigGroup>
-#include <KPluginInfo>
+#include <QIcon>
+#else
+class KConfigGroup;
+class QIcon;
+#endif
 #include <KPluginMetaData>
-#include <KService>
 
-#include "krunner_export.h"
+#if KRUNNER_ENABLE_DEPRECATED_SINCE(5, 91)
+#include <KPluginInfo>
+#include <KService>
+#else
+#include <KPluginFactory>
+#endif
 
 #if KRUNNER_ENABLE_DEPRECATED_SINCE(5, 65)
 #include <plasma/plasma_export.h> // for PLASMA_ENABLE_DEPRECATED_SINCE
@@ -742,5 +752,13 @@ K_PLUGIN_FACTORY(factory, registerPlugin<classname>();)
 K_PLUGIN_FACTORY(ConfigFactory, registerPlugin<classname>();)
 #endif
 // clang-format on
+
+#if !KRUNNER_ENABLE_DEPRECATED_SINCE(5, 91)
+namespace KRunner
+{
+using AbstractRunner = Plasma::AbstractRunner;
+using RunnerContext = Plasma::RunnerContext;
+}
+#endif
 
 #endif

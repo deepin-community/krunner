@@ -6,9 +6,13 @@
 
 #include "runnermanager.h"
 
+#ifdef KSERVICE_BUILD_DEPRECATED_SINCE
 #if KRUNNER_BUILD_DEPRECATED_SINCE(5, 72) && KSERVICE_BUILD_DEPRECATED_SINCE(5, 0)
 #define WITH_KSERVICE 1
-#else
+#endif
+#endif
+
+#ifndef WITH_KSERVICE
 #define WITH_KSERVICE 0
 #endif
 
@@ -26,6 +30,7 @@
 #endif
 
 #include "abstractrunnertest.h"
+#include "kpluginmetadata_utils_p.h"
 
 using namespace Plasma;
 
@@ -98,6 +103,7 @@ void DBusRunnerTest::testMatch()
     QCOMPARE(result.text(), QStringLiteral("Match 1"));
     QCOMPARE(result.iconName(), QStringLiteral("icon1"));
     QCOMPARE(result.type(), Plasma::QueryMatch::ExactMatch);
+    QCOMPARE(result.isMultiLine(), true);
     // relevance can't be compared easily because RunnerContext meddles with it
 
     // verify actions
@@ -143,7 +149,7 @@ void DBusRunnerTest::testMulti()
         manager->loadRunner(s);
     } else {
 #endif
-        auto md = KPluginMetaData::fromDesktopFile(QFINDTESTDATA("dbusrunnertestmulti.desktop"), {QStringLiteral("plasma-runner.desktop")});
+        auto md = parseMetaDataFromDesktopFile(QFINDTESTDATA("dbusrunnertestmulti.desktop"));
         QVERIFY(md.isValid());
         manager->loadRunner(md);
 #if WITH_KSERVICE
@@ -242,7 +248,7 @@ void DBusRunnerTest::testLifecycleMethods()
 {
     QProcess *process = startDBusRunnerProcess({QStringLiteral("net.krunnertests.dave"), QString()});
     manager.reset(new RunnerManager()); // This case is special, because we want to load the runners manually
-    auto md = KPluginMetaData::fromDesktopFile(QFINDTESTDATA("dbusrunnertestruntimeconfig.desktop"), {QStringLiteral("plasma-runner.desktop")});
+    auto md = parseMetaDataFromDesktopFile(QFINDTESTDATA("dbusrunnertestruntimeconfig.desktop"));
     manager->loadRunner(md);
     QCOMPARE(manager->runners().count(), 1);
     // Match session should be set up automatically
@@ -273,7 +279,7 @@ void DBusRunnerTest::testRequestActionsOnceWildcards()
 {
     initProperties();
     manager.reset(new RunnerManager()); // This case is special, because we want to load the runners manually
-    auto md = KPluginMetaData::fromDesktopFile(QFINDTESTDATA("dbusrunnertestmulti.desktop"), {QStringLiteral("plasma-runner.desktop")});
+    auto md = parseMetaDataFromDesktopFile(QFINDTESTDATA("dbusrunnertestmulti.desktop"));
     QVERIFY(md.isValid());
     manager->loadRunner(md);
     QCOMPARE(manager->runners().count(), 1);

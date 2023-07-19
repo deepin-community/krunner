@@ -198,6 +198,7 @@ libKF5Runner.so.5 libkf5runner5 #MINVER#
  _ZNK6Plasma13RunnerManager17enabledCategoriesEv@Base 5.0.0
  _ZNK6Plasma13RunnerManager18singleModeRunnerIdEv@Base 4.97.0
  _ZNK6Plasma13RunnerManager20getHistorySuggestionERK7QString@Base 5.78.0
+ _ZNK6Plasma13RunnerManager23convertDBusRunnerToJsonERK7QString@Base 5.96.0
  _ZNK6Plasma13RunnerManager29singleModeAdvertisedRunnerIdsEv@Base 4.97.0
  _ZNK6Plasma13RunnerManager5queryEv@Base 4.97.0
  _ZNK6Plasma13RunnerManager6runnerERK7QString@Base 4.97.0
@@ -227,6 +228,7 @@ libKF5Runner.so.5 libkf5runner5 #MINVER#
  _ZNK6Plasma14AbstractRunner8metadataEv@Base 5.2.0
  _ZNK6Plasma14AbstractRunner8priorityEv@Base 4.97.0
  _ZNK6Plasma14AbstractRunner8syntaxesEv@Base 4.97.0
+ _ZNSt6vectorISt10unique_ptrI23QDBusPendingCallWatcherSt14default_deleteIS1_EESaIS4_EE17_M_realloc_insertIJS4_EEEvN9__gnu_cxx17__normal_iteratorIPS4_S6_EEDpOT_@Base 5.96.0
  _ZTIN12ThreadWeaver11QueuePolicyE@Base 4.97.0
  _ZTIN12ThreadWeaver12JobInterfaceE@Base 4.97.0
  _ZTIN6Plasma13RunnerContextE@Base 4.97.0

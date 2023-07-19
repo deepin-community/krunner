@@ -246,12 +246,13 @@ public:
     /**
      * Sets single runner query mode. Note that a call to reset() will
      * turn off single runner query mode.
-     * TODO KF6 Make private
      *
+     * @note This method is considered internal. To set the single runner mode you should pass in a runnerId to @ref RunnerManager::launchQuery
      * @see reset()
      * @internal
      * @since 4.4
      */
+    // TODO KF6 Make private
     void setSingleRunnerQueryMode(bool enabled);
 
     /**

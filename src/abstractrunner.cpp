@@ -5,6 +5,11 @@
 */
 
 #include "abstractrunner.h"
+
+#ifndef KSERVICE_BUILD_DEPRECATED_SINCE
+#define KSERVICE_BUILD_DEPRECATED_SINCE(a, b) 0
+#endif
+
 #include "abstractrunner_p.h"
 
 #include <QAction>
@@ -13,6 +18,7 @@
 #include <QMimeData>
 #include <QMutex>
 
+#include <KConfigGroup>
 #include <KLocalizedString>
 #include <KSharedConfig>
 #if KRUNNER_BUILD_DEPRECATED_SINCE(5, 65)
@@ -365,7 +371,10 @@ QString AbstractRunner::description() const
 #if KRUNNER_BUILD_DEPRECATED_SINCE(5, 72)
 KPluginInfo AbstractRunner::metadata() const
 {
+    QT_WARNING_PUSH
+    QT_WARNING_DISABLE_DEPRECATED
     return KPluginInfo::fromMetaData(d->runnerDescription);
+    QT_WARNING_POP
 }
 #endif
 
@@ -478,15 +487,15 @@ AbstractRunnerPrivate::~AbstractRunnerPrivate()
 
 void AbstractRunnerPrivate::init()
 {
+    minLetterCount = runnerDescription.value(QStringLiteral("X-Plasma-Runner-Min-Letter-Count"), 0);
     if (runnerDescription.isValid()) {
         const auto rawData = runnerDescription.rawData();
-        minLetterCount = rawData.value(QStringLiteral("X-Plasma-Runner-Min-Letter-Count")).toInt();
         if (rawData.contains(QStringLiteral("X-Plasma-Runner-Match-Regex"))) {
             matchRegex = QRegularExpression(rawData.value(QStringLiteral("X-Plasma-Runner-Match-Regex")).toString());
             hasMatchRegex = matchRegex.isValid() && !matchRegex.pattern().isEmpty();
         }
-        hasUniqueResults = rawData.value(QStringLiteral("X-Plasma-Runner-Unique-Results")).toBool();
-        hasWeakResults = rawData.value(QStringLiteral("X-Plasma-Runner-Weak-Results")).toBool();
+        hasUniqueResults = runnerDescription.value(QStringLiteral("X-Plasma-Runner-Unique-Results"), false);
+        hasWeakResults = runnerDescription.value(QStringLiteral("X-Plasma-Runner-Weak-Results"), false);
     }
 }
 
